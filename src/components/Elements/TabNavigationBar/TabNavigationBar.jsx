@@ -9,8 +9,8 @@ const TabNavigationBar = ({ tabs, activeTab, setActiveTab }) => {
           key={index}
           className={`p-0.5 text-xs focus:outline-none whitespace-nowrap w-full h-8 ${
             activeTab === index
-              ? " w-[262.5px]  border border-primary50 rounded-[10px] bg-grey50"
-              : " w-[262.5px]  text-textLight hover:text-primary"
+              ? " w-[262.5px] text-black border border-primary50 rounded-[10px] bg-grey50"
+              : " w-[262.5px] text-textLight hover:text-primary"
           }`}
           onClick={() => setActiveTab(index)}
         >

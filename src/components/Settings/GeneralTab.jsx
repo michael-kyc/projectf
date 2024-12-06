@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import Switch from "react-switch";
 import { ButtonsText, TextButton } from "../Elements/Button/Button";
 import Modal from "../Modal/Modal";
@@ -62,10 +62,20 @@ export default function GeneralTab() {
   const filteredCurrencies = currency.filter((currency) =>
     currency.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Save selected language to DB
+
+  const savePreferredLanguage = useCallback(() => {
+
+  }, [selectedLanguage])
+  // Save selected currency to DB
+  const savePreferredCurrency = useCallback(() => {
+
+  }, [selectedCurrency])
   return (
     <>
       <div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-primary50">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-primary50 text-black">
           <h2 className=" mb-1 text-sm text-customgray font-semibold mb-1 leading-[20px] tracking-[-0.005em] text-left no-underline">
             Notifications
           </h2>
@@ -222,7 +232,7 @@ export default function GeneralTab() {
                   onChange={handleLanguageChange}
                   className="form-radio text-textBlack focus:ring-black accent-black"
                 />
-                <span>{language}</span>
+                <span className="text-textBlack">{language}</span>
               </label>
             ))}
           </div>
@@ -243,7 +253,7 @@ export default function GeneralTab() {
             title="Apply"
             type="primary"
             width="max-w-[114px] w-full"
-            onClick={closeLModal}
+            onClick={savePreferredLanguage}
             className={"py-1 sm:py-2 px-4"}
           />
         </div>
@@ -281,7 +291,7 @@ export default function GeneralTab() {
                   onChange={handleCurrencyChange}
                   className="form-radio text-textBlack focus:ring-black accent-black"
                 />
-                <span>{currency}</span>
+                <span className="text-textBlack">{currency}</span>
               </label>
             ))}
           </div>
@@ -302,7 +312,7 @@ export default function GeneralTab() {
             title="Apply"
             type="primary"
             width="max-w-[114px] w-full"
-            onClick={closeCModal}
+            onClick={savePreferredCurrency}
             className={"py-1 sm:py-2 px-4"}
           />
         </div>
