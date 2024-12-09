@@ -1,46 +1,127 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import Switch from "react-switch";
 import { ButtonsText, TextButton } from "../Elements/Button/Button";
 import Modal from "../Modal/Modal";
 import SearchBar from "../Elements/search/SearchBar";
+import useApi from "@/hooks/useApi";
+import { useUser } from "@/app/context/UserContext";
+import Loading from "@/Icons/iconsComponent/Loading";
 
 export default function GeneralTab() {
   // State for each toggle switch
   const [allNotifications, setAllNotifications] = useState(false);
   const [news, setNews] = useState(false);
+  const { user } = useUser();
   const [promotions, setPromotions] = useState(false);
-
+  const { fetchData, loading, error } = useApi();
   // Handle toggle functions
   const handleToggleAll = (checked) => {
-    setAllNotifications(checked);
-    setNews(checked);
-    setPromotions(checked);
+    setAllNotifications((prev) => checked);
+    setNews((prev) => checked);
+    setPromotions((prev) => checked);
+    updateUserSetting(checked, checked, checked, selectedLanguage, selectedCurrency);
   };
 
   const handleToggleNews = (checked) => {
-    setNews(checked);
+    setNews((prev) => checked);
+    updateUserSetting(allNotifications, checked, promotions, selectedLanguage, selectedCurrency);
   };
 
   const handleTogglePromotions = (checked) => {
-    setPromotions(checked);
+    setPromotions((prev) => checked);
+    updateUserSetting(allNotifications, news, checked, selectedLanguage, selectedCurrency);
   };
-
+  
+  useEffect(() => {
+    async function checkCurrentSetting() {
+      console.log(user)
+      if (!user) return
+      const { result, error } = await fetchData(`/settings/${user.id}`, {
+        method: "GET",
+      });
+      if (!error) {
+        if (result.status === 'success') {
+          if (!result.settings) {
+            await saveInitalSetting(user.id)
+          }
+          else{
+            setNews(result.settings.news)
+            setPromotions(result.settings.promotions)
+            setAllNotifications(result.settings.allNotifications)
+            setSelectedCurrency(result.settings.preferredCurrency)
+            setSelectedLanguage(result.settings.preferredLanguage)
+          }
+        }
+      }
+    }
+    checkCurrentSetting()
+  }, [user])
+  
   const [isModalCOpen, setModalCOpen] = useState(false);
   const [isModalLOpen, setModalLOpen] = useState(false);
   const openCurrencyModal = () => setModalCOpen(true);
   const openLanguageModal = () => setModalLOpen(true);
   const closeCModal = () => setModalCOpen(false);
   const closeLModal = () => setModalLOpen(false);
-
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
-
+  
   // List of languages
   const languages = ["English", "Deutsch", "Italian", "Arabic"];
   const currency = ["BTC", "ETH", "BNB", "BCH"];
+  
+  const saveInitalSetting = useCallback(async (id) => {
+    const { result, error } = await fetchData(`/settings/${id}`, {
+      method: "POST",
+      body: {
+        allNotifications: allNotifications,
+        news: news,
+        promotions: promotions,
+        preferredLanguage: selectedLanguage,
+        preferredCurrency: selectedCurrency,
+        userId: id
+      }
+    });
+    if (!error) {
+      if (result.status === 'success' && result.settings) {
+        setNews(result.settings.news)
+        setPromotions(result.settings.promotions)
+        setAllNotifications(result.settings.allNotifications)
+        setSelectedCurrency(result.settings.preferredCurrency)
+        setSelectedLanguage(result.settings.preferredLanguage)
+      }
+    }
+  }, [allNotifications, news, promotions, selectedLanguage, selectedCurrency])
 
+  const updateUserSetting = useCallback(
+    async (allNotifications, news, promotions, selectedLanguage, selectedCurrency) => {
+      if (!user) return
+      const { result, error } = await fetchData(`/settings/${user.id}`, {
+        method: "PUT",
+        body: {
+          allNotifications: allNotifications,
+          news: news,
+          promotions: promotions,
+          preferredLanguage: selectedLanguage,
+          preferredCurrency: selectedCurrency,
+        },
+      });
+  
+      if (!error) {
+        if (result.status === 'success' && result.settings) {
+          setAllNotifications(result.settings.allNotifications);
+          setNews(result.settings.news);
+          setPromotions(result.settings.promotions);
+          setSelectedCurrency(result.settings.preferredCurrency);
+          setSelectedLanguage(result.settings.preferredLanguage);
+        }
+      }
+    },
+    [user]
+  );
   // Handler for searching languages
   const handleSearchChange = (value) => {
     setSearchTerm(value);
@@ -66,11 +147,13 @@ export default function GeneralTab() {
   // Save selected language to DB
 
   const savePreferredLanguage = useCallback(() => {
-
+    updateUserSetting(allNotifications, news, promotions, selectedLanguage, selectedCurrency);
+    closeLModal()
   }, [selectedLanguage])
   // Save selected currency to DB
   const savePreferredCurrency = useCallback(() => {
-
+    updateUserSetting(allNotifications, news, promotions, selectedLanguage, selectedCurrency);
+    closeCModal()
   }, [selectedCurrency])
   return (
     <>
@@ -97,6 +180,7 @@ export default function GeneralTab() {
                 handleDiameter={14}
                 height={18.29}
                 width={32}
+                disabled={loading}
                 borderRadius={28.57}
               />
             </div>
@@ -116,6 +200,7 @@ export default function GeneralTab() {
                   handleDiameter={14}
                   height={18.29}
                   width={32}
+                  disabled={loading}
                   borderRadius={28.57}
                 />
               </div>
@@ -140,6 +225,7 @@ export default function GeneralTab() {
                   handleDiameter={14}
                   height={18.29}
                   width={32}
+                  disabled={loading}
                   borderRadius={28.57}
                 />
               </div>
@@ -170,6 +256,7 @@ export default function GeneralTab() {
             <ButtonsText
               width="w-20"
               title="Change"
+              disabled={loading}
               onClick={openLanguageModal}
               className={
                 "h-8 text-xs rounded-[10px] bg-primary text-white py-1 sm:py-2 px-4 "
@@ -191,6 +278,7 @@ export default function GeneralTab() {
             <ButtonsText
               width="w-20"
               title="Change"
+              disabled={loading}
               onClick={openCurrencyModal}
               className={
                 "h-8 text-xs rounded-[10px] bg-primary text-white py-1 sm:py-2 px-5"

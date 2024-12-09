@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import Modal from "../Modal/Modal";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import BlueCheck from "@/Icons/BlueCheck";
 import { ButtonsText, TextButton } from "../Elements/Button/Button";
 import System from "@/Icons/imageicon/System";
 import Device from "@/Icons/imageicon/Device";
+
 
 // Define a session item component
 const SessionItem = ({
@@ -21,6 +22,11 @@ const SessionItem = ({
   const closeModal = () => {
     setIsSignoutModalOpen(false);
   };
+
+  const singoutSession = useCallback(async () => {
+    await signOutHandler()
+    closeModal()
+  }, [])
 
   return (
     <div className="flex flex-wrap md:flex-nowrap flex-row items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-primary50 md:h-28">
@@ -109,7 +115,7 @@ const SessionItem = ({
             title="Log out"
             type="primary"
             className="text-xs !w-[114px] !min-w-[114px]"
-            onClick={closeModal}
+            onClick={singoutSession}
           />
         </div>
       </Modal>
